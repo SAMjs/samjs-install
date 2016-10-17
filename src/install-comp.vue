@@ -9,9 +9,9 @@
     @next="next"
     @validity-changed="validityChanged")
     .card-action
-      a.prev-button(@click="prev",@keyup.13 ="prev", v-if="hasPrev", :disabled="processing") back
+      a.prev-button(@click="prev",@keyup.13 ="prev", v-if="hasPrev", :class="{disabled: processing}") back
       .right-align
-        a.next-button(@click="next",@keyup.13 ="next", :disabled="processing || !isValid") {{nextText}}
+        a.next-button(@click="next",@keyup.13 ="next", :class="{disabled: processing || !isValid}") {{nextText}}
 </template>
 <script lang="coffee">
 Velocity = require("velocity-animate")
@@ -48,7 +48,7 @@ module.exports =
     currentComp: 0
   methods:
     next: ->
-      if @isValid
+      if @isValid and not @processing
         @processing = true
         if @currentCompName == "greeting"
           @samjs.install.onceConfigure
@@ -79,7 +79,8 @@ module.exports =
               @goTo(@currentComp+1)
           .catch @doNothing
 
-    doNothing: ->
+    doNothing: (e) ->
+      console.log e
       @processing = false
     goToFirstConfigItem: ->
       @currentComp = 0
@@ -105,18 +106,19 @@ module.exports =
       @processing = false
       @hasPrev = true
     prev: ->
-      @processing = true
-      if @state == "config"
-        if @currentComp == 1
-          @goToFirstConfigItem()
-        else
-          @goTo(@currentComp-1)
-      else if @state == "install"
-        index = items.install.indexOf(@currentComp)
-        if @currentComp == 1
-          goToFirstInstallItem()
-        else
-          @goTo(@currentComp-1)
+      unless @processing
+        @processing = true
+        if @state == "config"
+          if @currentComp == 1
+            @goToFirstConfigItem()
+          else
+            @goTo(@currentComp-1)
+        else if @state == "install"
+          index = items.install.indexOf(@currentComp)
+          if @currentComp == 1
+            goToFirstInstallItem()
+          else
+            @goTo(@currentComp-1)
 
     validityChanged: (isValid) -> @isValid = isValid
 
@@ -152,4 +154,7 @@ module.exports =
     opacity: 0
   .prev-button,.next-button
     cursor pointer
+    &.disabled
+      cursor not-allowed
+      color grey
 </style>

@@ -36,7 +36,4 @@ module.exports =
       filename: "index.html"
       template:  path.resolve(__dirname,'../lib/install.html')
       inject: true
-    new webpack.optimize.OccurenceOrderPlugin()
-    new webpack.HotModuleReplacementPlugin()
-    new webpack.NoErrorsPlugin()
   ]

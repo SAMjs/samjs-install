@@ -1,10 +1,11 @@
 fs = require "fs"
 path = require "path"
 webpack = require "webpack"
-
-
+koaHotDevWebpack = require "koa-hot-dev-webpack"
+# workaround for coffee-script adding .coffee
 webpackConfig = require.resolve "./webpack.config"
 webpackConfig = require webpackConfig
+
 connections = []
 
 module.exports = (options) -> (samjs) ->
@@ -47,27 +48,8 @@ module.exports = (options) -> (samjs) ->
           return "[{" +installItems.join("},{")+"}]"
         return "[]"
     webpackConfig.output = publicPath: options.publicPath, path: "/"
-    compiler = webpack(webpackConfig)
-    wdm = require('webpack-dev-middleware')(
-      compiler
-      publicPath:options.publicPath
-      noInfo:true
-      stats:colors:true
-      )
     koa = require("koa")()
-    koa.use (next) ->
-      ctx = this
-      ended = yield (done) ->
-        wdm ctx.req, {
-          end: (content) ->
-            ctx.body = content
-            done(null,true)
-          setHeader: -> ctx.set.apply(ctx, arguments)
-        }, -> done(null,false)
-      yield next unless ended
-    koa.use (next) ->
-      yield require("webpack-hot-middleware")(compiler).bind(null,@req,@res)
-      yield next
+    koa.use koaHotDevWebpack(webpackConfig)
     samjs.server = require("http").createServer(koa.callback())
     samjs.server.listen(options.port,options.host)
     samjs.server.on "connection", (con) ->

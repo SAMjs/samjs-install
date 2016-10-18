@@ -35,8 +35,7 @@
     "vue-style-loader": "^1.0.0",
     "vueify": "^8.7.0",
     "webpack": "^1.13.2",
-    "webpack-dev-middleware": "^1.8.4",
-    "webpack-hot-middleware": "^2.13.0"
+    "koa-hot-dev-webpack": "^0.1.0"
   },
   "devDependencies": {
     "atom-ui-reporter": "0.0.1",

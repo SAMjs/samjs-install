@@ -27,8 +27,8 @@ module.exports =
   resolve:
     extensions: ['', '.js', '.vue', '.coffee', '.scss', '.css']
     alias:
-      'vmat': path.resolve(__dirname, '../node_modules/vue-materialize/')
-      'vue': path.resolve(__dirname, '../node_modules/vue/')
+      'vmat': require.resolve('vue-materialize')
+      'vue': require.resolve('vue')
 
   plugins: [
     new HtmlWebpackPlugin

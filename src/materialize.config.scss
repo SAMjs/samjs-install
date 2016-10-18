@@ -26,8 +26,8 @@ $card-link-color: color("purple","darken-3");
 
 // css only, no JS needed for these
 // activate only what you need
-$roboto-font-path: "../node_modules/materialize-css/fonts/roboto/";
-@import "../node_modules/materialize-css/sass/components/roboto";
+// $roboto-font-path: "../node_modules/materialize-css/fonts/roboto/";
+// @import "../node_modules/materialize-css/sass/components/roboto";
 @import "../node_modules/materialize-css/sass/components/icons-material-design"; // icons are no long included in materializeCSS
 @import "../node_modules/materialize-css/sass/components/buttons";
 @import "../node_modules/materialize-css/sass/components/grid";

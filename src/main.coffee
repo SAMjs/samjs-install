@@ -1,7 +1,7 @@
 fs = require "fs"
 path = require "path"
 webpack = require "webpack"
-kwm = require "koa-webpack-middleware"
+
 
 webpackConfig = require.resolve "./webpack.config"
 webpackConfig = require webpackConfig

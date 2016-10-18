@@ -27,7 +27,7 @@ module.exports =
   resolve:
     extensions: ['', '.js', '.vue', '.coffee', '.scss', '.css']
     alias:
-      'vmat': require.resolve('vue-materialize')
+      'vmat': path.resolve(require.resolve('vue-materialize'),"../..")
       'vue': require.resolve('vue')
 
   plugins: [

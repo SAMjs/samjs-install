@@ -27,7 +27,8 @@ module.exports = (options) -> (samjs) ->
               icons.push icon
         if val.installComp.paths
           for path, i in val.installComp.paths
-            configItems.push "name:'config#{key+i}', comp: require('#{path}')"
+            p = path.replace("\\","\\\\")
+            configItems.push "name:'config#{key+i}', comp: require('#{p}')"
     for key,val of samjs.models
       if val.installComp
         if val.installComp.icons
@@ -36,7 +37,8 @@ module.exports = (options) -> (samjs) ->
               icons.push icon
         if val.installComp.paths
           for path, i in val.installComp.paths
-            installItems.push "name:'install#{key+i}', comp: require('#{path}')"
+            p = path.replace("\\","\\\\")
+            installItems.push "name:'install#{key+i}', comp: require('#{p}')"
     webpackConfig.callbackLoader =
       getIcons: require("vue-icons/icon-loader")(icons).getIcons
       configItems: ->

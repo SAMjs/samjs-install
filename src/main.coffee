@@ -19,26 +19,19 @@ module.exports = (options) -> (samjs) ->
     icons = []
     configItems = []
     installItems = []
-    for key,val of samjs.configs
-      if val.installComp
-        if val.installComp.icons
-          for icon in val.installComp.icons
-            if icons.indexOf(icon) == -1
-              icons.push icon
-        if val.installComp.paths
-          for path, i in val.installComp.paths
-            p = path.replace("\\","\\\\")
-            configItems.push "name:'config#{key+i}', comp: require('#{p}')"
-    for key,val of samjs.models
-      if val.installComp
-        if val.installComp.icons
-          for icon in val.installComp.icons
-            if icons.indexOf(icon) == -1
-              icons.push icon
-        if val.installComp.paths
-          for path, i in val.installComp.paths
-            p = path.replace("\\","\\\\")
-            installItems.push "name:'install#{key+i}', comp: require('#{p}')"
+    getItems = (name,itemArray) ->
+      for key,val of samjs[name]
+        if val.installComp
+          if val.installComp.icons
+            for icon in val.installComp.icons
+              if icons.indexOf(icon) == -1
+                icons.push icon
+          if val.installComp.paths
+            for path, i in val.installComp.paths
+              p = path.replace(/\\/g,"\\\\")
+              itemArray.push "name:'#{name}#{key+i}', comp: require('#{p}')"
+    getItems("configs",configItems)
+    getItems("models",installItems)
     webpackConfig.callbackLoader =
       getIcons: require("vue-icons/icon-loader")(icons).getIcons
       configItems: ->
@@ -51,7 +44,7 @@ module.exports = (options) -> (samjs) ->
         return "[]"
     webpackConfig.output = publicPath: options.publicPath, path: "/"
     koa = require("koa")()
-    koa.use koaHotDevWebpack(webpackConfig)
+    koa.use koaHotDevWebpack(webpackConfig, noInfo: false)
     samjs.server = require("http").createServer(koa.callback())
     samjs.server.listen(options.port,options.host)
     samjs.server.on "connection", (con) ->

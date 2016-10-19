@@ -16,6 +16,9 @@ module.exports = (options) -> (samjs) ->
   options.publicPath ?= "/"
   samjs.addHook "beforeStartup", ->
     realServer = samjs.server
+    samjs.server = null
+    samjs.noServer = true
+  samjs.on "beforeConfigureOrInstall", ->
     icons = []
     configItems = []
     installItems = []
@@ -46,23 +49,26 @@ module.exports = (options) -> (samjs) ->
     koa = require("koa")()
     koa.use koaHotDevWebpack(webpackConfig, noInfo: false)
     samjs.server = require("http").createServer(koa.callback())
+
     samjs.server.listen(options.port,options.host)
     samjs.server.on "connection", (con) ->
       connections.push con
       con.on "close", ->
         connections.splice(connections.indexOf(con),1)
+    samjs.io = samjs.socketio(samjs.server)
 
 
   samjs.addHook "beforeExposing", ->
     ioClosed = new samjs.Promise (resolve) ->
+      return resolve() unless samjs.io?
       samjs.io.httpServer.on "close", ->
         samjs.debug("install server closed")
         setTimeout resolve, 50
-    setTimeout (->
-      samjs.io.close()
-      for con in connections
-        con.destroy()
-      ),500
+      setTimeout (->
+        samjs.io.close()
+        for con in connections
+          con.destroy()
+        ),500
     return ioClosed.then ->
       samjs.server = realServer
       samjs.io = samjs.socketio(realServer)

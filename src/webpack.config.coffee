@@ -10,6 +10,7 @@ module.exports =
   module:
     loaders: [
       { test: /\.vue$/, loader: "vue"}
+      { test: /\.html$/, loader: "html"}
       { test: /\.coffee$/, loader: "coffee" }
       { test: /\.scss$/, loader: "style!css!sass" }
       { test: /\.css$/, loader: "style!css" }

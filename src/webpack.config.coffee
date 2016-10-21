@@ -3,7 +3,7 @@ autoprefixer = require "autoprefixer"
 path = require "path"
 HtmlWebpackPlugin = require('html-webpack-plugin')
 module.exports =
-  devtool:  '#source-map'
+
   entry:
     install: path.resolve(__dirname,'install')
 
@@ -22,8 +22,11 @@ module.exports =
     ]
     postLoaders: [
       { test: /vue-icons/, loader: "callback-loader"}
-
-
+    ]
+    noParse: [
+      /velocity\.js/
+      /json3\.js/
+      /bluebird\.js/
     ]
   resolve:
     extensions: ['', '.js', '.vue', '.coffee', '.scss', '.css']

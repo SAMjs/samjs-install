@@ -7,15 +7,19 @@ webpackConfig = require.resolve "./webpack.config"
 webpackConfig = require webpackConfig
 
 connections = []
-
+server = null
 module.exports = (options) -> (samjs) ->
   debug = samjs.debug("install-server")
   realServer = null
+  realIO = null
   options ?= {}
   options.port ?= 8080
   options.publicPath ?= "/"
+  options.debug ?= false
   samjs.addHook "beforeStartup", ->
+    realIO = samjs.io
     realServer = samjs.server
+    samjs.io = null
     samjs.server = null
     samjs.noServer = true
   samjs.on "beforeConfigureOrInstall", ->
@@ -46,31 +50,49 @@ module.exports = (options) -> (samjs) ->
           return "[{" +installItems.join("},{")+"}]"
         return "[]"
     webpackConfig.output = publicPath: options.publicPath, path: "/"
+    webpackConfig.devtool = '#source-map' if options.debug
+    webpackConfig.plugins.push new webpack.DefinePlugin
+      'process.env': NODE_ENV: if options.debug then '"development"' else '"production"'
     koa = require("koa")()
-    koa.use koaHotDevWebpack(webpackConfig, noInfo: false)
-    samjs.server = require("http").createServer(koa.callback())
-
-    samjs.server.listen(options.port,options.host)
+    koa.use koaHotDevWebpack(webpackConfig, noInfo: !options.debug)
+    server = require("http").createServer(koa.callback())
+    samjs.server = server
+    samjs.server.listen options.port, options.host, ->
+      if options.host
+        str = "http://#{options.host}:#{options.port}/"
+      else
+        str = "port: #{options.port}"
+      console.log "samjs-install server listening on #{str}"
+      koaHotDevWebpack.reload?()
     samjs.server.on "connection", (con) ->
       connections.push con
-      con.on "close", ->
+      con.once "close", ->
         connections.splice(connections.indexOf(con),1)
     samjs.io = samjs.socketio(samjs.server)
 
 
   samjs.addHook "beforeExposing", ->
     ioClosed = new samjs.Promise (resolve) ->
-      return resolve() unless samjs.io?
-      samjs.io.httpServer.on "close", ->
+      return resolve() unless samjs.io?.httpServer?
+      samjs.io.httpServer.once "close", ->
         samjs.debug("install server closed")
         setTimeout resolve, 50
       setTimeout (->
-        samjs.io.close()
+        samjs.io?.close()
         for con in connections
           con.destroy()
         ),500
     return ioClosed.then ->
-      samjs.server = realServer
-      samjs.io = samjs.socketio(realServer)
+      if realIO
+        samjs.io = realIO
+        samjs.server = realIO.httpserver
+      else
+        samjs.server = realServer
+        samjs.io = samjs.socketio(realServer)
   return new class Install
     name: "samjs-install"
+    shutdown: ->
+      for con in connections
+        con.destroy()
+      server?.close?()
+      koaHotDevWebpack.close()

@@ -45,7 +45,8 @@ fs.unlinkAsync testConfigFile
     )
     .startup()
   chokidar.watch(["./dev/server.coffee","./src/main.coffee"],{ignoreInitial: true})
-  .on "all", (ev,path) ->
-    if require.cache[path]
-      delete require.cache[path]
+  .on "all", (ev,relPath) ->
+    absPath = path.resolve(relPath)
+    if require.cache[absPath]
+      delete require.cache[absPath]
     samjs.reload()

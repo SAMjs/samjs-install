@@ -4,5 +4,5 @@ samjs.io.socket.on "reload", () ->
   console.log "reloading"
   document.location.reload()
 Vue = require "vue"
-install = new Vue(require("./install-comp")).$mount("#install")
+install = new Vue(require("./client-install-comp")).$mount("#install")
 install.samjs = samjs

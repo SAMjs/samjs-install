@@ -7,7 +7,10 @@
     "name": "Paul Pflugradt",
     "email": "paul.pflugradt@gmail.com"
   },
-  "main": "lib/main.js",
+  "main": "lib/plugin.js",
+  "bin": {
+    "samjs-install": "./cli.js"
+  },
   "engines": {
     "node": "*"
   },
@@ -18,13 +21,16 @@
     "apply-loader": "^0.1.0",
     "callback-loader": "^0.2.4",
     "coffee-script": "^1.11.1",
+    "commander": "^2.9.0",
     "css-loader": "^0.25.0",
+    "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.9.0",
     "html-loader": "^0.4.4",
     "html-webpack-plugin": "^2.22.0",
     "koa": "^1.2.4",
     "koa-hot-dev-webpack": "^0.1.2",
     "koa-sendfile": "^2.0.0",
+    "koa-static": "^2.0.0",
     "node-sass": "^3.10.1",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
@@ -43,6 +49,7 @@
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "chokidar": "^1.6.1",
+    "coffee-script": "^1.11.1",
     "coffee-loader": "^0.7.2",
     "mocha": "^3.1.2",
     "pug": "^2.0.0-beta6",
@@ -64,6 +71,8 @@
     "build:vue": "vue-compiler --out lib/ src/*.vue",
     "build:scss": "node-sass --output lib/ src/*.scss",
     "build:pug": "pug --out lib/ src/*.pug",
+    "static": "node ./cli.js dev/bootstrap.coffee",
+    "dev:static": "NODE_ENV=production coffee dev/server.coffee",
     "dev": "coffee dev/server.coffee",
     "test": "mocha",
     "preversion": "npm test",

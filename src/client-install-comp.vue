@@ -15,10 +15,10 @@
 </template>
 <script lang="coffee">
 Velocity = require("velocity-animate")
-items = require("apply!callback!./itemGetter")
+items = require("apply!callback!./client-item-getter")
 components = {
-  greeting: require("./greeting")
-  finished: require("./finished")
+  greeting: require("./client-greeting")
+  finished: require("./client-finished")
 }
 for c in items.config
   components[c.name]=c.comp
@@ -80,7 +80,6 @@ module.exports =
           .catch @doNothing
 
     doNothing: (e) ->
-      console.log e
       @processing = false
     goToFirstConfigItem: ->
       @currentComp = 0

@@ -5,7 +5,7 @@ samjs = require "samjs"
 samjsClient = require "samjs-client"
 samjsFiles = require "samjs-files"
 samjsFilesClient = require "samjs-files-client"
-samjsFilesAuth = require "../src/main"
+samjsFilesAuth = require "../src/plugin"
 samjsAuth = require "samjs-auth"
 samjsAuthClient = require "samjs-auth-client"
 fs = samjs.Promise.promisifyAll(require("fs"))
@@ -31,14 +31,14 @@ describe "samjs", ->
   clientTest = null
   describe "files-auth", ->
     before ->
-      samjs.reset()
-      unlink testConfigFile
+      samjs.reset().then ->
+        unlink testConfigFile
     after ->
       promises = [unlink(testConfigFile)]
       promises.push samjs.shutdown() if samjs.shutdown?
       samjs.Promise.all promises
     it "should be accessible", ->
-      samjs.plugins(samjsAuth,samjsFiles,samjsFilesAuth)
+      samjs.plugins(samjsAuth(),samjsFiles,samjsFilesAuth)
       should.exist samjs.files
       should.exist samjs.auth
     it "should install", ->

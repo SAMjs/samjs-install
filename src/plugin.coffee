@@ -49,6 +49,13 @@ module.exports = (options) -> (samjs) ->
   options.port ?= 8080
   options.publicPath ?= "/"
   options.dev ?= process.env.NODE_ENV != "production"
+  samjs.addHook "startupInitialization", ->
+    debug("saving original server")
+    realIO = samjs.io
+    realServer = samjs.server
+    samjs.io = null
+    samjs.server = null
+    samjs.noServer = true
   samjs.addHook "beforeStartup", ->
     if samjs.__samjsinstallbuild?
       debug("bulding install bundle")
@@ -68,12 +75,6 @@ module.exports = (options) -> (samjs) ->
           if stats.hasErrors() or stats.hasWarnings()
             console.log "please fix the warnings and errors with webpack first"
           reject()
-    debug("saving original server")
-    realIO = samjs.io
-    realServer = samjs.server
-    samjs.io = null
-    samjs.server = null
-    samjs.noServer = true
 
   samjs.on "beforeConfigureOrInstall", ->
     prepareWebpackConfig()

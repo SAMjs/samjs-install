@@ -37,38 +37,4 @@ describe "samjs", ->
       promises = [unlink(testConfigFile)]
       promises.push samjs.shutdown() if samjs.shutdown?
       samjs.Promise.all promises
-    it "should be accessible", ->
-      samjs.plugins(samjsAuth(),samjsFiles,samjsFilesAuth)
-      should.exist samjs.files
-      should.exist samjs.auth
-    it "should install", ->
-      samjs.options({config:testConfigFile})
-      .configs()
-      .models(testModel)
-      .startup().io.listen(port)
-      client = samjsClient({
-        url: url
-        ioOpts:
-          reconnection: false
-          autoConnect: false
-        })()
-      client.plugins(samjsAuthClient,samjsFilesClient)
-      client.auth.createRoot "rootroot"
-    it "should startup", ->
-      samjs.state.onceStarted
-    describe "client", ->
-      clientTest = null
-      it "should be unaccessible",  ->
-        clientTest = new client.Files("test")
-        samjs.Promise.any [clientTest.get(),clientTest.set("something")]
-        .should.be.rejected
-      it "should auth", ->
-        client.auth.login {name:"root",pwd:"rootroot"}
-        .then (result) ->
-          result.name.should.equal "root"
-      it "should be able to set and get", ->
-        clientTest.set("something")
-        .then ->
-          clientTest.get()
-        .then (result) ->
-          result.should.equal "something"
+    it "should work", ->

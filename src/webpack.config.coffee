@@ -1,43 +1,83 @@
-webpack = require "webpack"
-autoprefixer = require "autoprefixer"
-path = require "path"
 HtmlWebpackPlugin = require('html-webpack-plugin')
-module.exports =
+UglifyJSPlugin = require "uglifyjs-webpack-plugin"
+ExtractTextPlugin = require("extract-text-webpack-plugin")
+path = require "path"
+webpack = require "webpack"
+module.exports = (options) ->
 
   entry:
-    install: path.resolve(__dirname,'client-index')
+    install: path.resolve(__dirname,'samjs-install-client')
+
+  #devtool: "source-map"
+
+  output:
+    publicPath: options.publicPath
+    filename: "[name]_bundle.js"
 
   module:
-    loaders: [
-      { test: /\.vue$/, loader: require.resolve("vue-loader")}
-      { test: /\.html$/, loader: require.resolve("html-loader")}
-      { test: /\.coffee$/, loader: "coffee-loader" }
-      
-      { test: /\.woff(\d*)\??(\d*)$/, loader: "url?limit=10000&mimetype=application/font-woff" }
-      { test: /\.ttf\??(\d*)$/,    loader: require.resolve("file-loader") }
-      { test: /\.eot\??(\d*)$/,    loader: require.resolve("file-loader") }
-      { test: /\.svg\??(\d*)$/,    loader: require.resolve("file-loader") }
-
+    rules: [
+      { test: /\.woff(\d*)\??(\d*)$/, use: "url-loader?limit=10000&mimetype=application/font-woff" }
+      { test: /\.ttf\??(\d*)$/,    use: "file-loader" }
+      { test: /\.eot\??(\d*)$/,    use: "file-loader" }
+      { test: /\.svg\??(\d*)$/,    use: "file-loader" }
+      { test: /\.css$/, use: ExtractTextPlugin.extract({
+        fallback: "style-loader",
+        use: ["css-loader"] })
+        }
+      { test: /\.scss$/, use: ExtractTextPlugin.extract({
+        fallback: "style-loader",
+        use: ["css-loader","sass-loader"]})
+        }
+      { test: /\.styl$/, use: ExtractTextPlugin.extract({
+        fallback: "style-loader",
+        use: ["css-loader","stylus-loader"]})
+        }
+      { test: /\.html$/, use: "html-loader"}
+      { test: /\.coffee$/, use: "coffee-loader"}
+      {
+        test: /samjs-install-client/
+        enforce: "post" 
+        options: options
+        loader: path.resolve(__dirname,"./items-loader")
+      }
+      {
+        test: /\.(js|coffee)$/
+        use: "ceri-loader"
+        enforce: "post"
+        exclude: /node_modules/
+      }
+      { 
+        test: /ceri-icon\/icon/
+        enforce: "post"
+        loader: "ceri-icon"
+        options: options
+      }
     ]
-    postLoaders: [
-      { test: /vue-icons/, loader: require.resolve("callback-loader")}
-    ]
-    noParse: [
-      /velocity\.js/
-      /json3\.js/
-      /bluebird\.js/
-    ]
-
   resolve:
-    extensions: ['', '.js', '.vue', '.coffee', '.scss', '.css']
+    extensions: [".js", ".json", ".coffee",".scss",".css"]
     alias:
-      'vmat': path.resolve(require.resolve('vue-materialize'),"../..")
-      'vue': require.resolve('vue')
-
+      ce: path.dirname(require.resolve("ceri"))
+  resolveLoader:
+    extensions: [".js", ".coffee"]
+    modules:[
+      "web_loaders"
+      "web_modules"
+      "node_loaders"
+      "node_modules"
+      path.resolve(__dirname,'../node_modules')
+    ]
   plugins: [
+    new webpack.DefinePlugin "process.env.NODE_ENV": JSON.stringify(if options.dev then "development" else "production")
+    new UglifyJSPlugin
+      compress:
+        dead_code: true
+        warnings: false
+      mangle: !options.dev
+      beautify: !!options.dev
+      sourceMap: true
     new HtmlWebpackPlugin
-      title: "SAMjs Installation"
       filename: "index.html"
-      template:  path.resolve(__dirname,'../lib/client-index.html')
+      template:  path.resolve(__dirname,'../index.html')
       inject: true
+    new ExtractTextPlugin("styles.css")
   ]

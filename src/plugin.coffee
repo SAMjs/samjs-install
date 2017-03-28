@@ -3,52 +3,45 @@ fs = require "fs"
 path = require "path"
 webpack = require "webpack"
 koaHotDevWebpack = require "koa-hot-dev-webpack"
-# workaround for coffee-script adding .coffee
-webpackConfig = require.resolve "./webpack.config"
-webpackConfig = require webpackConfig
+if path.extname(__filename) == ".coffee"
+  require "coffee-script/register"
 
 connections = []
 io = null
 module.exports = (options) -> (samjs) ->
-
-  prepareWebpackConfig = ->
-    icons = []
-    configItems = []
-    installItems = []
-    getItems = (name,itemArray) ->
-      for key,val of samjs[name]
-        if val.installComp
-          if val.installComp.icons
-            for icon in val.installComp.icons
-              if icons.indexOf(icon) == -1
-                icons.push icon
-          if val.installComp.paths
-            for p, i in val.installComp.paths
-              p2 = p.replace(/\\/g,"\\\\")
-              itemArray.push "name:'#{name}#{key+i}', comp: require('#{p2}')"
-    getItems("configs",configItems)
-    getItems("models",installItems)
-    webpackConfig.callbackLoader =
-      getIcons: require("vue-icons/icon-loader")(icons).getIcons
-      configItems: ->
-        if configItems.length > 0
-          return "[{" +configItems.join("},{")+"}]"
-        return "[]"
-      installItems: ->
-        if installItems.length > 0
-          return "[{" +installItems.join("},{")+"}]"
-        return "[]"
-    webpackConfig.output = publicPath: options.publicPath, path: options.path or "/"
-    webpackConfig.plugins.push new webpack.DefinePlugin
-      'process.env': NODE_ENV: if options.dev then '"development"' else '"production"'
-
   debug = samjs.debug("install-server")
   realServer = null
   realIO = null
-  options ?= {}
-  options.port ?= 8080
-  options.publicPath ?= "/"
-  options.dev ?= process.env.NODE_ENV != "production"
+
+  defaults = 
+    port: 8080
+    publicPath: ""
+    dev: process.env.NODE_ENV != "production"
+    greeting: path.resolve __dirname, "./client-greeting"
+    farewell: path.resolve __dirname, "./client-farewell"
+  options = Object.assign defaults, options
+
+  options.icons ?= []
+  options.configItems ?= []
+  options.installItems ?= []
+  getItems = (name,itemArray) ->
+    for key,val of samjs[name]
+      if val.installComp
+        if val.installComp.icons
+          for icon in val.installComp.icons
+            if options.icons.indexOf(icon) == -1
+              options.icons.push icon
+        if val.installComp.paths
+          for p, i in val.installComp.paths
+            p2 = p.replace(/\\/g,"\\\\")
+            itemArray.push "name:'#{name}#{key+i}', comp: require('#{p2}')"
+  getWebpackConfig = (options) ->
+    getItems("configs",options.configItems)
+    getItems("models",options.installItems)
+    webpackConfig = require("./webpack.config")(options)
+    return webpackConfig
+  
+  
   samjs.addHook "startupInitialization", ->
     debug("saving original server")
     realIO = samjs.io
@@ -59,14 +52,9 @@ module.exports = (options) -> (samjs) ->
   samjs.addHook "beforeStartup", ->
     if samjs.__samjsinstallbuild?
       debug("bulding install bundle")
-      prepareWebpackConfig()
+      webpackConfig = getWebpackConfig(options)
       if typeof samjs.__samjsinstallbuild == "string" or samjs.__samjsinstallbuild instanceof String
-        webpackConfig.output.path = samjs.__samjsinstallbuild
-      webpackConfig.plugins.push new webpack.optimize.UglifyJsPlugin compress: warnings: false
-      ExtractTextPlugin = require("extract-text-webpack-plugin")
-      webpackConfig.plugins.push new ExtractTextPlugin("[name].css")
-      webpackConfig.module.loaders.push test: /\.css$/, loader: ExtractTextPlugin.extract("style", "css")
-      webpackConfig.module.loaders.push test: /\.scss$/, loader: ExtractTextPlugin.extract("style", "css!sass")
+        webpackConfig.output.path = path.resolve(samjs.__samjsinstallbuild)
       return new samjs.Promise (resolve,reject) ->
         webpack webpackConfig, (err, stats) ->
           samjs.state.startup.catch (e) -> throw e if e?
@@ -77,19 +65,13 @@ module.exports = (options) -> (samjs) ->
           reject()
 
   samjs.on "beforeConfigureOrInstall", ->
-    prepareWebpackConfig()
-    webpackConfig.module.loaders.push test: /\.css$/, loader: "style!css"
-    webpackConfig.module.loaders.push test: /\.scss$/, loader: "style!css!sass"
-    koa = require("koa")()
+    Koa = require("koa")
+    koa = new Koa()
     if options.path? and !options.dev
-      sendfile = require "koa-sendfile"
       serve = require "koa-static"
-      indexFile = path.resolve(options.path,"./index.html")
-      koa.use serve(options.path,index:false)
-      koa.use -> yield sendfile(@, indexFile)
+      koa.use serve(options.path)
     else
-      webpackConfig.devtool = '#source-map' if options.dev
-      koa.use koaHotDevWebpack(webpackConfig, noInfo: !options.dev)
+      koa.use koaHotDevWebpack(getWebpackConfig(options))
     debug("setting install server")
     samjs.server = require("http").createServer(koa.callback())
     samjs.server.on "connection", (con) ->
@@ -121,6 +103,7 @@ module.exports = (options) -> (samjs) ->
           con.destroy()
         ),500
     return ioClosed.then ->
+      koaHotDevWebpack.close()
       debug("restoring original server")
       if realIO
         samjs.io = realIO

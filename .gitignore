@@ -2,3 +2,6 @@ node_modules/
 test/testConfig.json
 config.json
 npm-debug.log
+lib/
+dev/static/
+.vscode

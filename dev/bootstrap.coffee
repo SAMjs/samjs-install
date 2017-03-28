@@ -8,7 +8,7 @@ module.exports = (samjs) ->
     name:"test"
     installComp:
       paths: [path.resolve(__dirname, "./config")]
-      icons: ["material-person"]
+      icons: ["ma-person"]
     isRequired: true
     test: (val) -> new samjs.Promise (resolve, reject) ->
       if val == "correct"
@@ -20,7 +20,7 @@ module.exports = (samjs) ->
     name:"test"
     installComp:
       paths: [path.resolve(__dirname, "./install")]
-      icons: ["material-vpn_key"]
+      icons: ["ma-vpn_key"]
     isRequired: true
     test: -> new samjs.Promise (resolve, reject) =>
       if @val == "correct"

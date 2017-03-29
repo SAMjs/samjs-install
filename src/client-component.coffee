@@ -63,8 +63,8 @@ module.exports = ceri
       item = @components[state][index]
       if item
         unless (c = @cards[item.name])
-          window.customElements.define "ce-"+item.name, item.comp
-          c = @cards[item.name] = document.createElement "ce-"+item.name
+          window.customElements.define item.name, item.comp
+          c = @cards[item.name] = document.createElement item.name
           c._index = index
           c._state = state
           c.nextButton = @nextButton
@@ -75,6 +75,8 @@ module.exports = ceri
         @content.appendChild c
         @$nextTick ->
           @currentComp = c
+      else
+        throw new Error "item not found"
       @processing = false
 
     next: (e)->
@@ -85,7 +87,7 @@ module.exports = ceri
           when @states[0]
             @samjs.install.onceConfigure
             .then @loadComponent.bind @, @states[1], 0
-            .catch =>
+            .catch (e) =>
               @samjs.install.onceInstall
               .then @loadComponent.bind @, @states[2], 0
               .catch @loadComponent.bind @, @states[3], 0

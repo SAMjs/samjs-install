@@ -34,7 +34,7 @@ module.exports = (options) -> (samjs) ->
         if val.installComp.paths
           for p, i in val.installComp.paths
             p2 = p.replace(/\\/g,"\\\\")
-            itemArray.push "name:'#{name}#{key+i}', comp: require('#{p2}')"
+            itemArray.push "name:'ce-#{name.toLowerCase()}-#{key.toLowerCase()}-#{i}', comp: require('#{p2}')"
   getWebpackConfig = (options) ->
     getItems("configs",options.configItems)
     getItems("models",options.installItems)

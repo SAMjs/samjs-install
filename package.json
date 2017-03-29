@@ -1,7 +1,7 @@
 {
   "name": "samjs-install",
   "description": "A dynamic install server for samjs",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "repository": "https://github.com/SAMjs/samjs-install",
   "author": {
     "name": "Paul Pflugradt",

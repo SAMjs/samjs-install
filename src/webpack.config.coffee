@@ -13,6 +13,7 @@ module.exports = (options) ->
   output:
     publicPath: options.publicPath
     filename: "[name]_bundle.js"
+    path: path.resolve(options.path)
 
   module:
     rules: [

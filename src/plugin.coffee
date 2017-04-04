@@ -52,9 +52,9 @@ module.exports = (options) -> (samjs) ->
   samjs.addHook "beforeStartup", ->
     if samjs.__samjsinstallbuild?
       debug("bulding install bundle")
-      webpackConfig = getWebpackConfig(options)
       if typeof samjs.__samjsinstallbuild == "string" or samjs.__samjsinstallbuild instanceof String
-        webpackConfig.output.path = path.resolve(samjs.__samjsinstallbuild)
+        options.path = samjs.__samjsinstallbuild
+      webpackConfig = getWebpackConfig(options)
       return new samjs.Promise (resolve,reject) ->
         webpack webpackConfig, (err, stats) ->
           samjs.state.startup.catch (e) -> throw e if e?

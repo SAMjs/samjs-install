@@ -19,9 +19,6 @@
     "cli.js",
     "index.html"
   ],
-  "peerDependencies": {
-    "samjs-client": "*"
-  },
   "dependencies": {
     "koa": "^2.2.0",
     "koa-static": "^3.0.0"

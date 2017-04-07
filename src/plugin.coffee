@@ -1,13 +1,13 @@
 # out: ../lib/plugin.js
 fs = require "fs"
 path = require "path"
-webpack = require "webpack"
-koaHotDevWebpack = require "koa-hot-dev-webpack"
+
 if path.extname(__filename) == ".coffee"
   require "coffee-script/register"
 
 connections = []
 io = null
+koaHotDevWebpack = null
 module.exports = (options) -> (samjs) ->
   debug = samjs.debug("install-server")
   realServer = null
@@ -56,6 +56,7 @@ module.exports = (options) -> (samjs) ->
         options.path = samjs.__samjsinstallbuild
       webpackConfig = getWebpackConfig(options)
       return new samjs.Promise (resolve,reject) ->
+        webpack = require "webpack"
         webpack webpackConfig, (err, stats) ->
           samjs.state.startup.catch (e) -> throw e if e?
           return reject(err) if err
@@ -64,13 +65,16 @@ module.exports = (options) -> (samjs) ->
             console.log "please fix the warnings and errors with webpack first"
           reject()
 
+
   samjs.on "beforeConfigureOrInstall", ->
     Koa = require("koa")
     koa = new Koa()
+    
     if options.path? and !options.dev
       serve = require "koa-static"
       koa.use serve(options.path)
     else
+      koaHotDevWebpack = require "koa-hot-dev-webpack"
       koa.use koaHotDevWebpack(getWebpackConfig(options))
     debug("setting install server")
     samjs.server = require("http").createServer(koa.callback())
@@ -86,7 +90,7 @@ module.exports = (options) -> (samjs) ->
       else
         str = "port: #{options.port}"
       console.log "samjs-install server listening on #{str}"
-      koaHotDevWebpack.reload?()
+      koaHotDevWebpack?.reload?()
     io = samjs.socketio(samjs.server)
     samjs.io = io
 
@@ -103,7 +107,7 @@ module.exports = (options) -> (samjs) ->
           con.destroy()
         ),500
     return ioClosed.then ->
-      koaHotDevWebpack.close()
+      koaHotDevWebpack?.close()
       debug("restoring original server")
       if realIO
         samjs.io = realIO
@@ -118,7 +122,7 @@ module.exports = (options) -> (samjs) ->
         debug("destroying connection")
         con.destroy()
       connections = []
-      koaHotDevWebpack.close()
+      koaHotDevWebpack?.close()
       if io?
         io.httpServer.once "close", resolve
         io.httpServer.close()

@@ -85,10 +85,13 @@ module.exports = (options) -> (samjs) ->
         debug("connection closed")
         connections.splice(connections.indexOf(con),1)
     samjs.server.listen options.port, options.host, ->
-      if options.host
-        str = "http://#{options.host}:#{options.port}/"
+      if samjs.util.isString(options.port)
+        if options.host
+          str = "http://#{options.host}:#{options.port}/"
+        else
+          str = "port: #{options.port}"
       else
-        str = "port: #{options.port}"
+        str = "socket"
       console.log "samjs-install server listening on #{str}"
       koaHotDevWebpack?.reload?()
     io = samjs.socketio(samjs.server)
